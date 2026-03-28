@@ -138,6 +138,7 @@
 
         let snake = [];
         let food = {};
+        let obstacles = [];
         let direction = { x: 1, y: 0 };
         let nextDirection = { x: 1, y: 0 };
         let score = 0;
@@ -145,6 +146,17 @@
         let gameLoop = null;
         let isPlaying = false;
         let speed = 500;
+
+        // 生成随机障碍物
+        function spawnObstacles() {
+            obstacles = [];
+            for (let i = 0; i < 8; i++) {
+                obstacles.push({
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                });
+            }
+        }
 
         highScoreEl.textContent = highScore;
 
@@ -157,8 +169,9 @@
             direction = { x: 1, y: 0 };
             nextDirection = { x: 1, y: 0 };
             score = 0;
-            speed = 100;
+            speed = 500;
             scoreEl.textContent = score;
+            spawnObstacles();
             spawnFood();
             gameOverEl.style.display = 'none';
             startBtn.style.display = 'none';
@@ -197,14 +210,23 @@
                 y: snake[0].y + direction.y
             };
 
-            // 检查碰撞
+            // 检查碰撞（墙壁）
             if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
                 gameOver();
                 return;
             }
 
+            // 检查碰撞（蛇自身）
             for (let segment of snake) {
                 if (head.x === segment.x && head.y === segment.y) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            // 检查碰撞（障碍物）
+            for (let obstacle of obstacles) {
+                if (head.x === obstacle.x && head.y === obstacle.y) {
                     gameOver();
                     return;
                 }
@@ -245,6 +267,17 @@
                 ctx.moveTo(0, i * gridSize);
                 ctx.lineTo(canvas.width, i * gridSize);
                 ctx.stroke();
+            }
+
+            // 绘制障碍物
+            ctx.fillStyle = '#666';
+            for (let obstacle of obstacles) {
+                ctx.fillRect(
+                    obstacle.x * gridSize + 2,
+                    obstacle.y * gridSize + 2,
+                    gridSize - 4,
+                    gridSize - 4
+                );
             }
 
             // 绘制食物
